@@ -33,9 +33,9 @@ class DayFive
   # loop over each line and map the points the line passes through into a an object
   # if we have lines [ [[0,2],[0,4]], and [[0,3],[0,4]] then this would map to:
   # {
-  #   "0-02": 1,
-  #   "0-03": 2,
-  #   "0-04": 2
+  #   "0-2": 1,
+  #   "0-3": 2,
+  #   "0-4": 2
   # }
   ###
   def map_lines
