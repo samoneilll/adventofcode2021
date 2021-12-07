@@ -6,9 +6,9 @@ class DayFive
   def initialize(file)
     @file = file
   end
-
+  
   def solve(diagonals = true)    
-    reject_diagonals! unless diagonals # filter diagonal lines and remove them from the array of lines
+    reject_diagonals! unless diagonals # filter diagonal lines and remove them from the array of lines unless called with solve(false)
     map_lines.filter { |k,v| v > 1 }.size # map points lines cross and filter for only points with more than one hit
   end
 
@@ -20,10 +20,8 @@ class DayFive
   #  [[0,8],[2,8]],
   #  [[2,6],[4,0]]
   # ]
-  # `@lines ||=` is memoized assignment, so if @lines is no instantiated it assigns it
-  # to the right hand side, if it is already assigned it returns the current value.
-  # this means we can just called lines() anywhere in the class and if it's not assigned it 
-  # assigns and returns the value, if already assigned, it just returns the value
+  # `@lines ||=` is memoized assignment so we can just call lines() anywhere in the class and if it's not assigned it 
+  # assigns and returns the value, if already assigned it just returns the value.
   # it's a gross one-liner, but it's parsing input so who cares.
   ###
   def lines
@@ -123,4 +121,4 @@ class DayFive
 end
 
 puts "part 1: #{DayFive.new('./input.txt').solve(false)}"
-puts "part 2: #{DayFive.new('./input.txt').solve(true)}"
+puts "part 2: #{DayFive.new('./input.txt').solve}"
