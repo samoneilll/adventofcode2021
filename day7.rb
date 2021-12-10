@@ -36,8 +36,8 @@ class Day7
   end
 end
 
-# puts Day7.new(File.read('./inputs/day7.txt').split(',').map(&:to_i)).solve
-d = Day7.new
-d.solve
-binding.pry
+puts Day7.new(File.read('./inputs/day7.txt').split(',').map(&:to_i)).solve
+# d = Day7.new
+# d.solve
+# binding.pry
 
