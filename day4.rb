@@ -83,4 +83,4 @@ class DayFour
   end
 end
 
-puts DayFour.new.solve( InputParser.parse(File.readlines('input.txt')) )
+puts DayFour.new.solve( InputParser.parse(File.readlines('./inputs/day4.txt')) )

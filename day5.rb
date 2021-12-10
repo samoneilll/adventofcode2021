@@ -53,5 +53,5 @@ class DayFive
   end  
 end
 
-puts "part 1: #{DayFive.new('./input.txt').solve(false)}"
-puts "part 2: #{DayFive.new('./input.txt').solve(true)}"
+puts "part 1: #{DayFive.new('./inputs/day5.txt').solve(false)}"
+puts "part 2: #{DayFive.new('./inputs/day5.txt').solve(true)}"

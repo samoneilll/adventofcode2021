@@ -54,4 +54,4 @@ class LanternFishState
 end
 
 
-puts Day6.new(input: File.read('./input.txt').strip.split(',').map(&:to_i), max_days: 256).pass_time
+puts Day6.new(input: File.read('./inputs/day6.txt').strip.split(',').map(&:to_i), max_days: 256).pass_time
