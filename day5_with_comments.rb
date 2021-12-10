@@ -33,26 +33,28 @@ class DayFive
   # loop over each line and map the points the line passes through into a an object
   # if we have lines [ [[0,2],[0,4]], and [[0,3],[0,4]] then this would map to:
   # {
-  #   "0-02": 1,
-  #   "0-03": 2,
-  #   "0-04": 2
+  #   "0-2": 1,
+  #   "0-3": 2,
+  #   "0-4": 2
   # }
   ###
   def map_lines
-    # loop for lines with object "points" available inside the block as the object we're mapping to object keys defaulting to 0
+    # loop for lines with object "points" available inside the block as the object we're mapping to with object keys defaulting to 0
     lines.each_with_object( Hash.new {|h,k| k = 0} ) do |line, points|
       direction = line_direction line # determine the line direction ("horizontal" || "vertical" || "diagonal")
 
       # line_points() returns an array of the points the line passes through, for example:
       #   `line_points([[0,2],[2,4]], "diagonal") => [[0, 2], [1, 3], [2, 4]]`
       # 
-      # When then loop over each of these points and then add this key to the points object and iterate its value by 1
+      # We then loop over each of these points and then add this key to the points object and iterate its value by 1
       #
-      # i.e if our points are [[0,2],[1,3]] we join each array to a string and do: 
+      # i.e if our points are [[0,2],[1,3],[2,4]] we join each array to a string and do: 
       #   points[ "0-2" ] += 1
       #   points[ "1-3" ] += 1
+      #   points[ "2-4  ] += 1
       # 
       # Because we set the default key value to 0, we don't need to check if the key exists in the object first before doing the ++
+      # if the key doesn't exist in the object it becomes 1, if it already existed the value is increased by 1.
       line_points(line, direction).each do |point|
         points[ point.join('-') ] += 1
       end
@@ -62,6 +64,7 @@ class DayFive
 
   ###
   # return an array of points the line passes through.
+  #
   # we do this by first sorting the start and end point for each axis and create a range
   #   line: [[0,2],[0,4]] => ranges: x = (0..0) and y = (2..4)
 
@@ -72,16 +75,14 @@ class DayFive
   #   arrays: x = [0] and y = [2,3,4] => zipped array: [[0,2],[0,3],[0,4]]
   # 
   # In order to create the range we had to sort the x/y values, 
-  # i.e if we have the line ([3,0],[1,0]) we cannot create the range (3..1) 
-  # because ruby ranges must move in a positive direction.
-  # for horizontal/vertical lines this doesn't matter, but for diagonal lines we need to restore the 
-  # correct order before zipping the ranges together
+  # i.e if we have the line ([3,0],[1,0]) we cannot create the range (3..1) because ruby ranges must move in a positive direction.
+  # for horizontal/vertical lines this doesn't matter, but for diagonal lines we need to restore the correct order before zipping the ranges together
   ###
   def line_points(line, direction)
-    x       = [line[0][0], line[1][0]].sort # line [[0,4][0,2]] => [0,0]
-    y       = [line[0][1], line[1][1]].sort # line [[0,4][0,2]] => [2,4]
-    x_range = (x[0]..x[1]).to_a # [0,0] => (0..0) => [0]
-    y_range = (y[0]..y[1]).to_a # [2,4] => (2..4) => [2,3,4]
+    x_points = [line[0][0], line[1][0]].sort    # line [[0,4][0,2]] => [0,0]
+    y_points = [line[0][1], line[1][1]].sort    # line [[0,4][0,2]] => [2,4]
+    x_range = (x[0]..x[1]).to_a                 # [0,0] => (0..0) => [0]
+    y_range = (y[0]..y[1]).to_a                 # [2,4] => (2..4) => [2,3,4]
 
     # arrays need to be the same size to zip correctly, so for horizontal/vertical lines we need to map the stationary axis array 
     # to new array to match the size of the other axis
@@ -93,9 +94,9 @@ class DayFive
 
 
     # consider the line [4,2][2,4], we would have mapped this to the arrays x_range = [2,3,4] and y_range = [2,3,4] after sorting
-    # and if we zip we then get [2,2],[3,3],[4,4], so before we zip diagonals we have to check the positions in the original line 
-    # and reverse if they're not correct
-    #   x_range = [2,3,4] but line[0][0] == 4 > line[1][0] == 2 so we reverse the array
+    # and if we zip we then get [2,2],[3,3],[4,4] which moves in the wrong direction.
+    # so before we zip diagonals we have to check the positions in the pre-sorted line and reverse if they're not correct:
+    #   x_range = [2,3,4] but line[0][0] == 4 > line[1][0] == 2, so we reverse the array
     x_range.reverse! if line[0][0] > line[1][0] 
     y_range.reverse! if line[0][1] > line[1][1]
 
