@@ -1,160 +1,104 @@
-require 'pry'
-
 class Day8
-  SEGMENTS = (0..6).map { |i| [i,nil] }.to_h
-  SIGNALS  = (0..9).map { |i| [i,nil] }.to_h
-
   def initialize(input)
-    @input = map_sample_input(input)
-    # @input = map_input(input)
+    @input = map_input(input)
   end
 
   def solve
-    @input.map { |signal_set| count_uniqs(signal_set) }.sum
-  end
-
-#       0000      If "ab"   then a and b could both be segments 2 or 5. 
-#      1    2     To identify which is which we should find a 6 digit signal with only a or b
-#      1    2     
-#       3333      
-#      4    5
-#      4    5
-#       6666
-
-  def map_segments(signal_set)
-    @segments = SEGMENTS.dup
-    @signals  = SIGNALS.dup
-    two_char_segments signal_set[:digits]
-    three_char_segments signal_set[:digits]
-    four_char_segments signal_set[:digits]
-    five_char_segments signal_set[:digits]
-    seven_char_segments signal_set[:digits]
-    binding.pry
-  end
-
-  def two_char_segments(digits)
-    @signals[1] = digits.find { |sig| sig.size == 2 }
-    six_candidates = digits.find_all { |sig| sig.size == 6 }
-    @signals[1].split('').each do |seg|
-      six_candidates.each do |candidate|
-        if !candidate.include? seg
-          @signals[6]   = candidate if 
-          @segments[2]  = seg
-        end
-      end
-    end
-    @segments[5] = @signals[1].delete @segments[2]    
-  end
-
-  def three_char_segments(digits)
-    @signals[7]   = digits.find { |sig| sig.size == 3 }
-    @segments[0]  = @signals[7].delete @signals[1]
-  end
-
-  def four_char_segments(digits)
-    @signals[4] = digits.find { |sig| sig.size == 4 }
-    zero_candidates = digits.find_all { |sig| sig.size == 6 }
-    @signals[4].delete(@signals[1]).split('').each do |seg|
-      zero_candidates.each do |candidate|
-        if !candidate.include? seg
-          @signals[0]   = candidate 
-          @segments[3]  = seg
-          @segments[1]  = @signals[4].delete(@signals[1] + seg)
-          zero_candidates.delete candidate
-          zero_candidates.delete @signals[6]
-          @signals[9]   = zero_candidates.first
-        end
-      end
-    end
-  end
-
-  def five_char_segments(digits)
-    two_candidates = digits.find_all { |sig| sig.size == 5 }
-    two_candidates.each do |candidate|
-      if !candidate.include? @segments[5]
-        @signals[2] = candidate 
-      else        
-        if candidate.include? @segments[1]
-          @signals[5] = candidate
-        else
-          @signals[3] = candidate
-        end
-      end
-    end
-  end
-
-  def seven_char_segments(digits)
-    @signals[8] = digits.find { |sig| sig.size == 7 }
-  end
-
-  def map_uniques(signal_set)
-    signal_set[:digits].map{ |sig| unique_signal(sig) }
-  end
-
-  ## returns:
-  # {
-  #   signal: 'ab', value: 1
-  # }
-  def unique_signal(signal)
-    case signal.length
-    when 2
-      {signal: signal, value: 1}
-    when 3
-      {signal: signal, value: 7}
-    when 4
-      {signal: signal, value: 4}
-    when 7
-      {signal: signal, value: 8}
-    end
-  end
-
-
-
-  ## returns:
-  # [
-  #   {
-  #     :digits=>["be", "cfbegad", "cbdgef", "fgaecd", "cgeb", "fdcge", "agebfd", "fecdb", "fabcd", "edb"],
-  #     :output=>["fdgacbe", "cefdb", "cefbgd", "gcbe"]
-  #   }
-  # ]
-  def map_sample_input(input)
-    input.each_with_object([]) do |line, arr|
-      parts = line.split(' | ')
-      arr << {
-        digits: parts[0].split(' '),
-        output: parts[1].split(' ')
-      }
-    end
+    @input.map { |signal_set| SignalSet.new(signal_set).decode_signals }.sum
   end
 
   def map_input(input_file)
     File.readlines(input_file).each_with_object([]) do |line,arr|
       parts = line.split(' | ')
       arr << {
-        digits: parts[0].split(' '),
+        signals: parts[0].split(' '),
         output: parts[1].split(' ')
       }
     end
-
   end
 end
 
-single_input = ["acedgfb cdfbe gcdfa fbcad dab cefabd cdfgeb eafb cagedb ab | cdfeb fcadb cdfeb cdbaf"]
+class SignalSet
+  def initialize(input)
+    @segments        = {}
+    @decoded_signals = {}
+    @raw_signals     = input[:signals]
+    @output          = input[:output]
+  end
 
-input = [
-	"be cfbegad cbdgef fgaecd cgeb fdcge agebfd fecdb fabcd edb | fdgacbe cefdb cefbgd gcbe",
-	"edbfga begcd cbg gc gcadebf fbgde acbgfd abcde gfcbed gfec | fcgedb cgb dgebacf gc",
-	"fgaebd cg bdaec gdafb agbcfd gdcbef bgcad gfac gcb cdgabef | cg cg fdcagb cbg",
-	"fbegcd cbd adcefb dageb afcb bc aefdc ecdab fgdeca fcdbega | efabcd cedba gadfec cb",
-	"aecbfdg fbg gf bafeg dbefa fcge gcbea fcaegb dgceab fcbdga | gecf egdcabf bgf bfgea",
-	"fgeab ca afcebg bdacfeg cfaedg gcfdb baec bfadeg bafgc acf | gebdcfa ecba ca fadegcb",
-	"dbcfg fgd bdegcaf fgec aegbdf ecdfab fbedc dacgb gdcebf gf | cefg dcbef fcge gbcadfe",
-	"bdfegc cbegaf gecbf dfcage bdacg ed bedf ced adcbefg gebcd | ed bcgafe cdgba cbgef",
-	"egadfb cdbfeg cegd fecab cgb gbdefca cg fgcdab egfdb bfceg | gbdfcae bgc cg cgb",
-	"gcafb gcf dcaebfg ecagb gf abcdeg gaef cafbge fdbac fegbdc | fgae cfgab fg bagce",
-]
+  def decode_signals
+    unique_size_signals
+    six_char_segments
+    five_char_segments
+    sort_decoded_signal_strings!
+    decode_output_and_join
+  end
 
-d = Day8.new(single_input)
-signal_set = d.instance_variable_get(:@input)[0]
-d.map_segments signal_set
-binding.pry
+  def decode_output_and_join
+    @output.map { |signal| @decoded_signals.key(sort_signal(signal)) }.join('').to_i
+  end
+
+  def sort_decoded_signal_strings!
+    @decoded_signals.each do |num , str|
+      @decoded_signals[num] = sort_signal str
+    end
+  end
+
+  def six_char_segments    
+    six_chars = signals_by_size 6
+
+    @decoded_signals[1].split('').each do |segment|
+      six_chars.each do |signal|
+        unless signal.include? segment
+          @decoded_signals[6] = signal
+          @segments[5] = @decoded_signals[1].delete segment          
+        end
+      end
+    end
+    six_chars.delete @decoded_signals[6]
+
+    @decoded_signals[4].delete(@decoded_signals[1]).split('').each do |segment|
+      six_chars.each do |signal|
+        unless signal.include? segment
+          @decoded_signals[0] = signal
+          @segments[1] = @decoded_signals[4].delete(@decoded_signals[1] + segment)
+        end
+      end
+    end
+    six_chars.delete @decoded_signals[0]
+
+    @decoded_signals[9] = six_chars[0]
+  end
+
+  def five_char_segments
+    signals_by_size(5).each do |signal|
+      unless signal.include? @segments[5]
+        @decoded_signals[2] = signal
+      else
+        if signal.include? @segments[1]
+          @decoded_signals[5] = signal
+        else
+          @decoded_signals[3] = signal
+        end
+      end
+    end
+  end
+
+  def unique_size_signals
+    @decoded_signals[1] = signals_by_size 2
+    @decoded_signals[7] = signals_by_size 3
+    @decoded_signals[4] = signals_by_size 4
+    @decoded_signals[8] = signals_by_size 7
+  end
+
+  def signals_by_size(len)
+    signals = @raw_signals.find_all { |sig| sig.size == len }
+    signals.size > 1 ? signals : signals.first
+  end
+
+  def sort_signal(str)
+    str.split('').sort.join('')
+  end
+end
+
+puts Day8.new('./inputs/day8.txt').solve
